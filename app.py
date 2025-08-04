@@ -1,6 +1,7 @@
 import streamlit as st
-from chatbot_backend import chatbot
+from graph.graph import chatbot
 from langchain_core.messages import HumanMessage
+import requests
 
 # st.session_state -> dict -> 
 CONFIG = {'configurable': {'thread_id': 'thread-1'}}
@@ -25,9 +26,14 @@ if user_input:
     with st.chat_message('user'):
         st.text(user_input)
 
-    response = chatbot.invoke({'messages': [HumanMessage(content=user_input)]}, config=CONFIG)
+    url = "http://127.0.0.1:8000/chat"
+    payload = {"user_input": user_input, "thread_id": "test_thread"}
+
+    response = requests.post(url, json=payload)
+    status_code = response.status_code
     
-    ai_message = response['messages'][-1].content
+    ai_message = response.json()["response"]
+    
     # first add the message to message_history
     st.session_state['message_history'].append({'role': 'assistant', 'content': ai_message})
     with st.chat_message('assistant'):
